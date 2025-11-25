@@ -1,0 +1,275 @@
+{
+  "name": "HR Cold Emails",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "6bc4c476-0f50-4ed7-9d99-000628dd869d",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1Wqh7m1cJX7o-oTjf7JLyZnoleKj3-_tmdcwS07SYNyk",
+          "mode": "list",
+          "cachedResultName": "HR EMail List",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Wqh7m1cJX7o-oTjf7JLyZnoleKj3-_tmdcwS07SYNyk/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Wqh7m1cJX7o-oTjf7JLyZnoleKj3-_tmdcwS07SYNyk/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        208,
+        0
+      ],
+      "id": "742f6769-72fd-4921-b222-3c8cd9dc0f85",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "RCUhbHRgsmAHJz6n",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are an expert at writing short, friendly cold emails to HR professionals.\nKeep emails under 130 words. Output only the email body."
+            },
+            {
+              "content": "=`Write a clean, ready-to-send cold email to an HR about product manager opportunities.\n\nStart with: \"Hi there,\"\nAdd line breaks using <br><br>.\n\nDO NOT include any placeholders like [your name], [company], [skills], etc.\nUse the details below instead:\n\nMy name: Muskan Gupta\nMy background: Product management + Analytics + Engineering\nMy strengths: PM thinking, execution, cross-functional collaboration, solving ambiguous problems\nMy LinkedIn: https://www.linkedin.com/in/muskan-gupta98/\nMore about me: I'm a graduate from Schulich School Of Business, Toronto, plus have 3+ years of experience both in India and Canada.\n\nImportant: Include the LinkedIn link exactly once. Do NOT repeat it, do NOT wrap it in brackets or parentheses, and do NOT generate any additional link formats.\n\nTheir email: ${$json[\"Email\"]}\n\nTone: warm, concise, friendly, and under 120 words.\nReturn only the email body (no subject).`\n"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "af8a3e18-091a-4f96-bb65-6b5076d43973",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "CQJ4uGkF6x0UXoPB",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Get row(s) in sheet').item.json.Email }}",
+        "subject": "Exploring PM Opportunities",
+        "message": "={{ $json.output[0].content[0].text }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        768,
+        0
+      ],
+      "id": "5336e697-8321-468f-82ad-a564def8eb07",
+      "name": "Send a message",
+      "webhookId": "7e2a97ac-c3b2-44cf-ab2e-9cfbdec7f52a",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "JKQompSf9ngKYkQ5",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1Wqh7m1cJX7o-oTjf7JLyZnoleKj3-_tmdcwS07SYNyk",
+          "mode": "list",
+          "cachedResultName": "HR EMail List",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Wqh7m1cJX7o-oTjf7JLyZnoleKj3-_tmdcwS07SYNyk/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Wqh7m1cJX7o-oTjf7JLyZnoleKj3-_tmdcwS07SYNyk/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Last email sent at": "={{ $now }}",
+            "Status": "=Sent",
+            "row_number": 0,
+            "Email": "={{ $('Get row(s) in sheet').item.json.Email }}"
+          },
+          "matchingColumns": [
+            "Email"
+          ],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Last email sent at",
+              "displayName": "Last email sent at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Note",
+              "displayName": "Note",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        976,
+        0
+      ],
+      "id": "d9f5178e-198c-40bc-aafa-c8e178c2fa4f",
+      "name": "Update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "RCUhbHRgsmAHJz6n",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "bfefe3de-7fac-43f3-904c-eed62abb146e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "65f0b3520aea2cdb6813baa8e7024b3a58287a1478f78f16883010830a38fea3"
+  },
+  "id": "mwrKSpsx65YSGlR1",
+  "tags": []
+}
